@@ -233,6 +233,10 @@ public class Autonomous_R1 extends LinearOpMode {
             rightMotor.setPower(off);
         }
     }
+    
+    // Gives the diff between given angle and imu.getAngularOrientation
+    // Z axis in degrees.
+    // May be negative values.
     public double CalculateError(double desiredAngle) {
         double error; //sets a variable to hold the error
         error = desiredAngle - imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYZ, AngleUnit.DEGREES).firstAngle; //subtracts the input angle from the imu reading
@@ -240,33 +244,55 @@ public class Autonomous_R1 extends LinearOpMode {
         telemetry.update(); //pushes previously set data to phone
         return error; //sends back error value to be used
     }
+    
+    private void turnGyroPeter(double targetAngleDegress, double speed) {
+      while(true) {
+        double diffDegrees = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYZ, AngleUnit.DEGREES).firstAngle - targetAngleDegress;
+        if (diffDegrees < threshold) {
+          // Made it!
+          break;
+        }
+        
+        // Start slowing down around 10 degrees (360/36)
+        double relativePower = Range.clip(diffDegrees / 36, -1, 1); 
+        rightMotor.setPower(speed * relativePower);
+        leftMotor.setPower(-speed * relativePower);
+        return Range.clip(error * .15), -1, 1); 
+    }
+    
+    // Turn a certain amount by turning in increasingly smaller amounts until reaching the desired heading according to the IMU
     private void turnGyro(double angle, double speed){
         telemetry.addData("turn Gyro", angle); //sets telemetry equal to the input angle
         telemetry.update();//pushes telemetry to phone
-        while(opModeIsActive() && !OnHeading(speed, angle)){ //while the robot is not Onheading (see onHeading function)
+        while(opModeIsActive() && !adjustHeadingIfNecessary(speed, angle)){ //while the robot is not Onheading (see onHeading function)
             telemetry.addData("turning", "check"); //sets telemetry
             telemetry.update(); //pushes telemetry
         }
     }
-    public boolean OnHeading(double speed, double angle) {
+    
+    
+    public boolean adjustHeadingIfNecessary(double speed, double angle) {
         double error, steer, leftSpeed, rightSpeed; //sets our doubles
         boolean onTarget = false; //sets onTarget to false
         error = CalculateError(angle); //gets the error from the calculate error function
+
+        // If it's less than 0.25 degress off, don't do anything;
         if(error <= threshold ){ //if the error is not less than a double we declare
-            steer = 0.0; //sets steer double to 0
-            leftSpeed= 0.0; //sets motor speeds to 0
-            rightSpeed = 0.0;
-            onTarget = true; //sets onTarget to true
+            return true;
         }
-        else {
-            steer = adjustHeading(error); //sets steer = adjust heading with the error as input (see adjustHeading function)
-            rightSpeed = -(speed * steer); // sets right speed to input speed multiplied by the adjusted heading
-            leftSpeed = -rightSpeed; //sets left speed to the opposite of the right speed
-        }
+        // Figure out how much to turn.
+        // Turn by moving the right and left in different directions
+        steer = adjustHeading(error); //sets steer = adjust heading with the error as input (see adjustHeading function)
+        rightSpeed = -(speed * steer); // sets right speed to input speed multiplied by the adjusted heading
+        leftSpeed = -rightSpeed; //sets left speed to the opposite of the right speed
         rightMotor.setPower(rightSpeed); //sets motor power to the speed
         leftMotor.setPower(leftSpeed); //sets motor power to the speed
-        return onTarget; // the while statement in turnGyro will stop if this value is true
+        return false; // the while statement in turnGyro will stop if this value is true
     }
+    
+    // Figure out how much to turn.  Will be multiplied by speed to determine power.
+    // So the unit returned is power/speed.
+    // Range is -1 to 1
     private double adjustHeading(double error){
         double  Kp = .15, Ki = 0, Kd = 0; //declares PID constants
         double errorPrior = 0; //declares prior error
@@ -274,10 +300,15 @@ public class Autonomous_R1 extends LinearOpMode {
         ElapsedTime turning = new ElapsedTime(); //sets a new elapsed time for use to use
         turning.reset(); //sets the elapsed time over
         while(true) { //it will forever calculate
-            integral = integral + (error * turning.time()); //integral value = previous integral value (initial being 0) + the error * elapsed time
+            // The first time through the loop (currently the only time), this will not change much (error * eps == eps)
+            integral += (error * turning.time()); //integral value = previous integral value (initial being 0) + the error * elapsed time
+            // The first time through the loop (currently the only time), this will be huge (error/eps)
             derivative = (error - errorPrior)/turning.time(); //derivative value = error subtracted by previous error divided by the elapsed time
             errorPrior = error; //error prior = error which will be updated soon
-            return Range.clip((error * Kp)+(Ki*integral)+(Kd*derivative), -1, 1); //return P+I+D between -1 and 1 to be multiplied by the speed
+            // The first time through the loop (currently the only time), this will be
+            // (error * Kp) + (Ki * error) + (Kd * HUGE)
+            // This will always be 1 unless Kd is very tiny
         }
+        return Range.clip((error * Kp)+(Ki*integral)+(Kd*derivative), -1, 1); //return P+I+D between -1 and 1 to be multiplied by the speed
     }
 }
