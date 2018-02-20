@@ -128,167 +128,7 @@ public class  Autonomous_R1 extends LinearOpMode {
         
         // opModeIsActive will return false when the user hits stop.
         while (opModeIsActive()) {
-            // VuMark == camera access
-
-            //Sets variable for figuring out which picture it is
-            RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //Reference to picture
-            //Checks if the VuMark is unknown and acts based on that
-            if (vuMark != RelicRecoveryVuMark.UNKNOWN) { //Events for if VuMark is unknown
-                // Do this when we know what the cypher is
-                telemetry.addData("VuMark", "%s visible", vuMark);
-                OpenGLMatrix pose = ((VuforiaTrackableDefaultListener) relicTemplate.getListener()).getPose(); //Gets the position of the picture
-                //Turns it into rotation and position coordinates
-
-                // Extract the position of the relic if there is one.
-                if (pose != null) { //Events to track position of the picture relative to the robot.
-                    VectorF trans = pose.getTranslation();
-                    Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
-                    // Extract the X, Y, and Z components of the offset of the target relative to the robot
-                    double tX = trans.get(0);
-                    double tY = trans.get(1);
-                    double tZ = trans.get(2);
-                    // Extract the rotational components of the target relative to the robot
-                    double rX = rot.firstAngle;
-                    double rY = rot.secondAngle;
-                    double rZ = rot.thirdAngle;
-                }
-            }
-
-            // At this point we might have a known relic position.
-            // ??? if the relic is unknown.
-
-            //Runs a check to see which of the picture is active
-            Center = (vuMark == RelicRecoveryVuMark.CENTER);
-            Right = (vuMark == RelicRecoveryVuMark.RIGHT);
-            Left = (vuMark == RelicRecoveryVuMark.LEFT);
-            if (Center) {
-                telemetry.addData("Bool", "Center");
-            } else if (Right) {
-                telemetry.addData("Bool", "Right");
-            } else if (Left) {
-                telemetry.addData("Bool", "Left");
-            } else {
-                telemetry.addData("VuMark", "not visible");
-            }
-
-            // Write out the debug info
-            telemetry.update();
-
-            servoStickRight1.setPosition(down);
-            sleep(2000);
-            if (DriveFunctions.ReadColor(colorSensorRight) == 1){
-                telemetry.addData("Color is","Blue");
-                telemetry.update();
-                DriveFunctions.Turn(0.3,-0.3,leftMotor,rightMotor);
-                sleep(200);
-                DriveFunctions.Brake(leftMotor,rightMotor);
-                servoStickRight1.setPosition(up);
-                sleep(2000);
-                DriveFunctions.Turn(-0.3,0.3,leftMotor,rightMotor);
-                sleep(200);
-                DriveFunctions.Brake(leftMotor,rightMotor);
-            }
-            if (DriveFunctions.ReadColor(colorSensorRight) == 0){
-                telemetry.addData("Color is","Red");
-                telemetry.update();
-                DriveFunctions.Turn(-0.3,0.3,leftMotor,rightMotor);
-                sleep(200);
-                DriveFunctions.Brake(leftMotor,rightMotor);
-                servoStickRight1.setPosition(up);
-                sleep(2000);
-                DriveFunctions.Turn(0.3,-0.3,leftMotor,rightMotor);
-                sleep(200);
-                DriveFunctions.Brake(leftMotor,rightMotor);
-            }
-            else {
-                telemetry.addData("Color is","not visible");
-                telemetry.update();
-            }
-
-            telemetry.addData("Begin off-board driving","");
-            telemetry.update();
-
-            servoStickRight1.setPosition(up);
-            sleep(2000);
-
-            telemetry.addData("Ease off the board","");
-            telemetry.update();
-            DriveFunctions.DriveStraight(leftMotor,rightMotor,0.2);
-            sleep(500);
-
-            telemetry.addData("Straight ish","");
-            telemetry.update();
-            DriveFunctions.Turn(0,0.9,leftMotor,rightMotor);
-            sleep(400);
-            DriveFunctions.Brake(leftMotor,rightMotor);
-
-            telemetry.addData("Easy left turn","");
-            telemetry.update();
-            DriveFunctions.Turn(-0.3,0.3,leftMotor,rightMotor);
-            sleep(400);
-            DriveFunctions.Brake(leftMotor,rightMotor);
-
-            sleep(1000);
-
-            telemetry.addData("Straight","");
-            telemetry.update();
-            DriveFunctions.Turn(0.2,0.6,leftMotor,rightMotor);
-            sleep(2000);
-            DriveFunctions.Brake(leftMotor,rightMotor);
-
-            //what if we're at the wall?
-            telemetry.addData("Backup in case we're at the wall","");
-            telemetry.update();
-            DriveFunctions.BackUp(leftMotor, rightMotor, 0.3);
-            sleep(500);
-            DriveFunctions.Brake(leftMotor,rightMotor);
-
-            telemetry.addData("Flick","");
-            telemetry.update();
-            blockFlicker.setPosition(0);
-            sleep(1000);
-            blockFlicker.setPosition(1);
-            sleep(1000);
-            blockFlicker.setPosition(0);
-            sleep(1000);
-            blockFlicker.setPosition(1);
-            sleep(1000);
-
-            //back forth
-            telemetry.addData("Back-forth procedure instantiated","");
-            telemetry.update();
-            BackForth(leftMotor, rightMotor, 0.3, 300);
-
-            //back forth
-            telemetry.addData("Back-forth procedure instantiated","");
-            telemetry.update();
-            BackForth(leftMotor, rightMotor, 0.3, 500);
-
-
-            //back forth
-            telemetry.addData("Back-forth procedure instantiated","");
-            telemetry.update();
-            BackForth(leftMotor, rightMotor, 0.3, 300);
-
-            //back forth
-            telemetry.addData("Back-forth procedure instantiated","");
-            telemetry.update();
-            BackForth(leftMotor, rightMotor, 0.3, 500);
-
-            //back forth
-            telemetry.addData("Back-forth procedure instantiated","");
-            telemetry.update();
-            BackForth(leftMotor, rightMotor, 0.3, 500);
-
-            //final back up
-            telemetry.addData("Backup one last time","");
-            telemetry.update();
-            DriveFunctions.BackUp(leftMotor, rightMotor, 0.3);
-            sleep(300);
-            DriveFunctions.Brake(leftMotor,rightMotor);
-
-            DriveFunctions.Brake(leftMotor,rightMotor);
-
+            findRelicAndKillIt();
             sleep(300000);
 
         }
@@ -298,12 +138,7 @@ public class  Autonomous_R1 extends LinearOpMode {
     // back forth
     public void BackForth(DcMotor left, DcMotor right, double speed, long t){
 
-        DriveFunctions.BackUp(left,right,speed);
-        sleep(t);
-        DriveFunctions.Brake(left,right);
-        DriveFunctions.DriveStraight(left,right,speed);
-        sleep(t);
-        DriveFunctions. Brake(left,right);
+
     }
 
     //declares function that calculates math to drive by encoder
@@ -399,5 +234,162 @@ public class  Autonomous_R1 extends LinearOpMode {
             errorPrior = error; //error prior = error which will be updated soon
             return Range.clip((error * Kp)+(Ki*integral)+(Kd*derivative), -1, 1); //return P+I+D between -1 and 1 to be multiplied by the speed
         }
+    }
+    
+    double easySpeed = 0.3;
+    
+    // The main thing we do in a loop every 5 minutes
+    private void findRelicAndKillIt() {
+            // VuMark == camera access
+
+            //Sets variable for figuring out which picture it is
+            RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //Reference to picture
+            //Checks if the VuMark is unknown and acts based on that
+            if (vuMark != RelicRecoveryVuMark.UNKNOWN) { //Events for if VuMark is unknown
+                // Do this when we know what the cypher is
+                telemetry.addData("VuMark", "%s visible", vuMark);
+                OpenGLMatrix pose = ((VuforiaTrackableDefaultListener) relicTemplate.getListener()).getPose(); //Gets the position of the picture
+                //Turns it into rotation and position coordinates
+
+                // Extract the position of the relic if there is one.
+                if (pose != null) { //Events to track position of the picture relative to the robot.
+                    VectorF trans = pose.getTranslation();
+                    Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
+                    // Extract the X, Y, and Z components of the offset of the target relative to the robot
+                    double tX = trans.get(0);
+                    double tY = trans.get(1);
+                    double tZ = trans.get(2);
+                    // Extract the rotational components of the target relative to the robot
+                    double rX = rot.firstAngle;
+                    double rY = rot.secondAngle;
+                    double rZ = rot.thirdAngle;
+                }
+            }
+
+            // At this point we might have a known relic position.
+            // ??? if the relic is unknown.
+
+            //Runs a check to see which of the picture is active
+            Center = (vuMark == RelicRecoveryVuMark.CENTER);
+            Right = (vuMark == RelicRecoveryVuMark.RIGHT);
+            Left = (vuMark == RelicRecoveryVuMark.LEFT);
+            if (Center) {
+                telemetry.addData("Bool", "Center");
+            } else if (Right) {
+                telemetry.addData("Bool", "Right");
+            } else if (Left) {
+                telemetry.addData("Bool", "Left");
+            } else {
+                telemetry.addData("VuMark", "not visible");
+            }
+
+            // Write out the debug info
+            telemetry.update();
+
+            servoStickRight1.setPosition(down);
+            sleep(2000);
+            if (DriveFunctions.ReadColor(colorSensorRight) == 1){
+                telemetry.addData("Color is","Blue");
+                telemetry.update();
+                DriveFunctions.Turn(easySpeed, easySpeed,leftMotor,rightMotor);
+                sleep(200);
+                DriveFunctions.Brake(leftMotor,rightMotor);
+                servoStickRight1.setPosition(up);
+                sleep(2000);
+                DriveFunctions.Turn(-easySpeed, easySpeed,leftMotor,rightMotor);
+                sleep(200);
+                DriveFunctions.Brake(leftMotor,rightMotor);
+            }
+            if (DriveFunctions.ReadColor(colorSensorRight) == 0){
+                telemetry.addData("Color is","Red");
+                telemetry.update();
+                DriveFunctions.Turn(-easySpeed, easySpeed,leftMotor,rightMotor);
+                sleep(200);
+                DriveFunctions.Brake(leftMotor,rightMotor);
+                servoStickRight1.setPosition(up);
+                sleep(2000);
+                DriveFunctions.Turn(easySpeed, -easySpeed,leftMotor,rightMotor);
+                sleep(200);
+                DriveFunctions.Brake(leftMotor,rightMotor);
+            }
+            else {
+                telemetry.addData("Color is","not visible");
+                telemetry.update();
+            }
+
+            telemetry.addData("Begin off-board driving","");
+            telemetry.update();
+
+            servoStickRight1.setPosition(up);
+            sleep(2000);
+
+            telemetry.addData("Ease off the board","");
+            telemetry.update();
+            DriveFunctions.DriveStraight(leftMotor,rightMotor,0.2);
+            sleep(500);
+
+            telemetry.addData("Straight ish","");
+            telemetry.update();
+            DriveFunctions.Turn(0,0.9,leftMotor,rightMotor);
+            sleep(400);
+            DriveFunctions.Brake(leftMotor,rightMotor);
+
+            telemetry.addData("Easy left turn","");
+            telemetry.update();
+            DriveFunctions.Turn(-easySpeed, easySpeed,leftMotor,rightMotor);
+            sleep(400);
+            DriveFunctions.Brake(leftMotor,rightMotor);
+
+            sleep(1000);
+
+            log("Gradual left/straight");
+            turnAndWaitAndThenBreak(0.2, 0.6, 2000);
+
+            log("Backup in case we're at the wall");
+            backupAndWaitAndThenBreak(easySpeed, 500);
+
+            log("Flick many times!");
+            for (int i = 0; i < 2; i++) {
+              flick(1000);
+            }
+            
+            log("Back-forth a bunch");
+            for (double t : [300, 500, 300, 500, 500]) {
+              backupAndWaitAndThenBreak(easySpeed, t);
+              straingAndWaitAndThenBreak(easySpeed, t);
+            }
+
+            log("Final backup")
+            backupAndWaitAndThenBreak(easySpeed, 300);
+    }
+   
+    private void flick(double t) {
+      for (int pos : [0, 1]) {
+        blockFlicker.setPosition(pos);
+        sleep(1000);
+      }
+    }
+    
+    private void turnAndWaitAndThenBreak(double speedLeft, double speedRight, double t) {
+      DriveFunctions.Turn(speedLeft, speedRight, leftMotor, rightMotor);
+      sleep(t);   
+      DriveFunctions.Brake(leftMotor, rightMotor);
+    }
+    
+    private void straightAndWaitAndThenBreak(double speed, double t) {
+      DriveFunctions.BackUp(leftMotor, rightMotor, speed);
+      sleep(t);   
+      DriveFunctions.Brake(leftMotor, rightMotor);
+    }
+    
+    private void backupAndWaitAndThenBreak(double speed, double t) {
+      DriveFunctions.BackUp(leftMotor, rightMotor, speed);
+      sleep(t);   
+      DriveFunctions.Brake(leftMotor, rightMotor);
+    }
+    
+    private void log(String line) {
+      telemetry.addData(line, "");
+      telemetry.update();
     }
 }
